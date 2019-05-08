@@ -33,6 +33,20 @@ public class MsgProcessingServiceTest {
   }
 
   @Test
+  public void givenANullRepository_thenNullPointerExceptionIsThrown() {
+    thrown.expect(NullPointerException.class);
+
+    testee = new MsgProcessingService(null, () -> "");
+  }
+
+  @Test
+  public void givenANullReportGenerator_thenNullPointerExceptionIsThrown() {
+    thrown.expect(NullPointerException.class);
+
+    testee = new MsgProcessingService(new ArrayList<>(), null);
+  }
+
+  @Test
   public void givenMessage_whenToBeProcessed_thenMessageGetsRecorded() {
     SaleMessage saleMessage = createMarsSale(20);
     testee.process(saleMessage);
