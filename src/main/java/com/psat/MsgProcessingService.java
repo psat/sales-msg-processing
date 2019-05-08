@@ -1,5 +1,7 @@
 package com.psat;
 
+import com.psat.sales.SaleMessage;
+
 import java.util.List;
 
 import static com.psat.util.Preconditions.checkNotNull;

@@ -1,4 +1,4 @@
-package com.psat;
+package com.psat.sales;
 
 import java.util.Objects;
 
