@@ -5,6 +5,7 @@ import com.psat.calculators.TotalSalesCalculator;
 import com.psat.reporting.SalesReport;
 import com.psat.reporting.SpyReportGenerator;
 import com.psat.sales.AdjustSaleMessage;
+import com.psat.sales.AdjustSaleMessage.Operation;
 import com.psat.sales.SaleMessage;
 import org.junit.Before;
 import org.junit.Rule;
@@ -14,7 +15,7 @@ import org.junit.rules.ExpectedException;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static com.psat.sales.AdjustSaleMessage.Operation.ADD;
+import static com.psat.sales.AdjustSaleMessage.Operation.*;
 import static com.psat.util.SalesTestHelper.createAdjustSaleMessage;
 import static com.psat.util.SalesTestHelper.createSaleMessage;
 import static java.util.stream.Collectors.toMap;
@@ -107,7 +108,7 @@ public class MsgProcessingServiceTest {
 
   @Test
   public void givenMessage_andMessageCountIs10_whenToBeProcessed_thenAReportIsGenerated() {
-    generateSalesAndStore(0, 9,"mars", 5);
+    generateSalesAndStore(0, 9, "mars", 5);
     SaleMessage saleMessage = createSaleMessage(10, "twix", 15);
     testee.process(saleMessage);
 
@@ -178,20 +179,34 @@ public class MsgProcessingServiceTest {
   }
 
   @Test
-  public void givenAnAdjustSaleMessage_andMessagesOfSameTypeInSalesRepository_whenAdjust_thenAdjustmentsMade() {
+  public void givenAnAdjustSaleMessageForAdding_andMessagesOfSameTypeInSalesRepository_whenAdjust_thenAdjustmentsMade() {
+    adjustAndAssert(ADD, 2, "twix", 25, 27);
+  }
+
+  @Test
+  public void givenAnAdjustSaleMessageForSubtracting_andMessagesOfSameTypeInSalesRepository_whenAdjust_thenAdjustmentsMade() {
+    adjustAndAssert(SUBTRACT, 5, "raiders", 22, 17);
+  }
+
+  @Test
+  public void givenAnAdjustSaleMessageForMultiplying_andMessagesOfSameTypeInSalesRepository_whenAdjust_thenAdjustmentsMade() {
+    adjustAndAssert(MULTIPLY, 3, "raiders", 5, 15);
+  }
+
+  private void adjustAndAssert(Operation op, int amount, String productType, int value, int expectedAdjustedValue) {
     SaleMessage mars = createSaleMessage(1, "mars", 1, 1);
     repository.put(1, mars);
-    generateSalesAndStore(2, 3, "twix", 25);
+    generateSalesAndStore(2, 3, productType, value);
 
-    AdjustSaleMessage adjustSaleMessage = createAdjustSaleMessage("twix", 2, ADD);
+    AdjustSaleMessage adjustSaleMessage = createAdjustSaleMessage(productType, amount, op);
     testee.adjustSales(adjustSaleMessage);
 
     assertThat(adjustedRepository).hasSize(1);
 
     assertThat(repository).hasSize(4);
     repository.values().stream()
-            .filter(saleMessage -> saleMessage.getSale().getProductType().equals("twix"))
-            .forEach(saleMessage -> assertThat(saleMessage.getSale().getValue()).isEqualTo(27));
+            .filter(saleMessage -> saleMessage.getSale().getProductType().equals(productType))
+            .forEach(saleMessage -> assertThat(saleMessage.getSale().getValue()).isEqualTo(expectedAdjustedValue));
 
     assertThat(repository.get(mars.getId())).isEqualTo(mars);
   }
