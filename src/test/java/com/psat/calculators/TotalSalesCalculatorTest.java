@@ -1,6 +1,5 @@
 package com.psat.calculators;
 
-import com.psat.sales.Sale;
 import com.psat.sales.SaleMessage;
 import org.junit.Before;
 import org.junit.Test;
@@ -10,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static com.psat.sales.SaleMessage.saleMessageIdentity;
+import static com.psat.util.SalesTestHelper.createSaleMessage;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TotalSalesCalculatorTest {
@@ -58,9 +58,5 @@ public class TotalSalesCalculatorTest {
   private void calculateAndAssert(List<SaleMessage> sales, int expectedTotalValue, int expectedTotalCount) {
     Optional<SaleMessage> expected = Optional.of(createSaleMessage("", expectedTotalValue, expectedTotalCount));
     assertThat(testee.calculate(sales)).isEqualTo(expected);
-  }
-
-  private SaleMessage createSaleMessage(String productType, int value, int count) {
-    return new SaleMessage(new Sale(productType, value), count);
   }
 }

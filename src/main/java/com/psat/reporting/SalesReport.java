@@ -5,13 +5,10 @@ import com.psat.sales.SaleMessage;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class SalesReport implements ReportGenerator {
-
-  private static final Logger LOGGER = Logger.getLogger(SalesReport.class.getSimpleName());
 
   private static final String SALE_REPORT_ENTRY_FORMAT = "%s:\n\t#Sales: %d\n\t Total: %d";
   private static final String SALES_REPORT_HEADER = "\n--------------\nSALES REPORT\n--------------\n\n";
@@ -53,7 +50,6 @@ public class SalesReport implements ReportGenerator {
                     Collectors.joining("\n", SALES_REPORT_HEADER, footer)
             );
 
-    LOGGER.info(reportBody);
     return Optional.ofNullable(reportBody);
   }
 

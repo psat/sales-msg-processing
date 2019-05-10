@@ -4,10 +4,6 @@ import java.util.Objects;
 
 public class SaleMessage {
 
-  public static SaleMessage saleMessageIdentity(String productType) {
-    return new SaleMessage(new Sale(productType, 0), 0);
-  }
-
   private Sale sale;
   private int count;
 
@@ -18,6 +14,10 @@ public class SaleMessage {
   public SaleMessage(Sale sale, int count) {
     this.sale = sale;
     this.count = count;
+  }
+
+  public static SaleMessage saleMessageIdentity(String productType) {
+    return new SaleMessage(new Sale(productType, 0), 0);
   }
 
   public Sale getSale() {

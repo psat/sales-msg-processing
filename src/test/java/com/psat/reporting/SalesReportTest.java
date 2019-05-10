@@ -1,6 +1,5 @@
 package com.psat.reporting;
 
-import com.psat.sales.Sale;
 import com.psat.sales.SaleMessage;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.psat.util.SalesTestHelper.createSaleMessage;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SalesReportTest {
@@ -95,9 +95,5 @@ public class SalesReportTest {
             "\t#Sales: 5\n" +
             "\t Total: 40\n" +
             "--------------");
-  }
-
-  private SaleMessage createSaleMessage(String productType, int value, int count) {
-    return new SaleMessage(new Sale(productType, value), count);
   }
 }
