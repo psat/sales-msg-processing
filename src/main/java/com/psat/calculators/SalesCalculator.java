@@ -3,6 +3,7 @@ package com.psat.calculators;
 import com.psat.sales.Sale;
 import com.psat.sales.SaleMessage;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,7 @@ import static java.util.stream.Collectors.toList;
 public class SalesCalculator implements Calculator<List<SaleMessage>> {
 
   @Override
-  public List<SaleMessage> calculate(List<SaleMessage> sales) {
+  public List<SaleMessage> calculate(Collection<SaleMessage> sales) {
     return getSalesGroupedByProduct(sales).entrySet()
             .stream()
             .map(entry -> entry.getValue()
@@ -25,7 +26,7 @@ public class SalesCalculator implements Calculator<List<SaleMessage>> {
             .collect(toList());
   }
 
-  private Map<String, List<SaleMessage>> getSalesGroupedByProduct(List<SaleMessage> sales) {
+  private Map<String, List<SaleMessage>> getSalesGroupedByProduct(Collection<SaleMessage> sales) {
     return sales.stream()
             .collect(Collectors.groupingBy(saleMessage -> saleMessage.getSale().getProductType()));
   }
@@ -40,7 +41,7 @@ public class SalesCalculator implements Calculator<List<SaleMessage>> {
     int accumulatedValue = saleMessage.getSale().getValue() + value;
 
     return new SaleMessage(
-            new Sale(otherSaleMessage.getSale().getProductType(), accumulatedValue),
-            accumulatedCount);
+            -1, new Sale(otherSaleMessage.getSale().getProductType(), accumulatedValue), accumulatedCount
+    );
   }
 }

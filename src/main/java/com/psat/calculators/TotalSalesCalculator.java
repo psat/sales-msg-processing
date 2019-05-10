@@ -3,7 +3,7 @@ package com.psat.calculators;
 import com.psat.sales.Sale;
 import com.psat.sales.SaleMessage;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 
 import static com.psat.sales.SaleMessage.saleMessageIdentity;
@@ -11,7 +11,7 @@ import static com.psat.sales.SaleMessage.saleMessageIdentity;
 public class TotalSalesCalculator implements Calculator<Optional<SaleMessage>> {
 
   @Override
-  public Optional<SaleMessage> calculate(List<SaleMessage> sales) {
+  public Optional<SaleMessage> calculate(Collection<SaleMessage> sales) {
     return Optional.ofNullable(
             sales.stream().reduce(saleMessageIdentity(""), this::totalSalesAccumulator)
     );
@@ -22,6 +22,7 @@ public class TotalSalesCalculator implements Calculator<Optional<SaleMessage>> {
     int accumulatedValue = saleMessage.getSale().getValue() + otherSaleMessage.getSale().getValue();
 
     return new SaleMessage(
+            -1,
             new Sale("", accumulatedValue),
             accumulatedCount);
   }

@@ -29,7 +29,7 @@ public class TotalSalesCalculatorTest {
   @Test
   public void givenAListOfMessages_withOneEntry_thenTotalReturned() {
     SaleMessage mars = createSaleMessage("mars", 10, 1);
-    ArrayList<SaleMessage> sales = new ArrayList<>();
+    List<SaleMessage> sales = new ArrayList<>();
     sales.add(mars);
 
     calculateAndAssert(sales, 10, 1);
@@ -56,7 +56,7 @@ public class TotalSalesCalculatorTest {
   }
 
   private void calculateAndAssert(List<SaleMessage> sales, int expectedTotalValue, int expectedTotalCount) {
-    Optional<SaleMessage> expected = Optional.of(createSaleMessage("", expectedTotalValue, expectedTotalCount));
+    Optional<SaleMessage> expected = Optional.of(createSaleMessage(-1, "", expectedTotalValue, expectedTotalCount));
     assertThat(testee.calculate(sales)).isEqualTo(expected);
   }
 }

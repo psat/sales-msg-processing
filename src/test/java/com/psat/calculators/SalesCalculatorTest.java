@@ -27,7 +27,7 @@ public class SalesCalculatorTest {
 
   @Test
   public void givenAListOfMessages_withOneEntryForOneProduct_thenAggregatedResultsReturned() {
-    SaleMessage mars = createSaleMessage("mars", 10);
+    SaleMessage mars = createSaleMessage(-1, "mars", 10);
     ArrayList<SaleMessage> sales = new ArrayList<>();
     sales.add(mars);
 
@@ -41,7 +41,7 @@ public class SalesCalculatorTest {
     sales.add(createSaleMessage("mars", 20));
 
     List<SaleMessage> expected = new ArrayList<>();
-    expected.add(createSaleMessage("mars", 30, 2));
+    expected.add(createSaleMessage(-1, "mars", 30, 2));
 
     assertThat(testee.calculate(sales)).isEqualTo(expected);
   }
@@ -54,8 +54,8 @@ public class SalesCalculatorTest {
     sales.add(createSaleMessage("twix", 20));
 
     List<SaleMessage> expected = new ArrayList<>();
-    expected.add(createSaleMessage("mars", 30, 2));
-    expected.add(createSaleMessage("twix", 20, 1));
+    expected.add(createSaleMessage(-1, "mars", 30, 2));
+    expected.add(createSaleMessage(-1, "twix", 20, 1));
 
     assertThat(testee.calculate(sales)).isEqualTo(expected);
   }
@@ -70,9 +70,9 @@ public class SalesCalculatorTest {
     sales.add(createSaleMessage("lion", 2));
 
     List<SaleMessage> expected = new ArrayList<>();
-    expected.add(createSaleMessage("lion", 7, 2));
-    expected.add(createSaleMessage("mars", 30, 2));
-    expected.add(createSaleMessage("twix", 20, 1));
+    expected.add(createSaleMessage(-1, "lion", 7, 2));
+    expected.add(createSaleMessage(-1, "mars", 30, 2));
+    expected.add(createSaleMessage(-1, "twix", 20, 1));
 
     assertThat(testee.calculate(sales)).isEqualTo(expected);
   }

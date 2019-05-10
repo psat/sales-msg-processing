@@ -11,8 +11,8 @@ public class AdjustSaleMessage extends SaleMessage {
 
   private Operation operation;
 
-  public AdjustSaleMessage(Sale sale, Operation operation) {
-    super(sale, 0);
+  public AdjustSaleMessage(int id, Sale sale, Operation operation) {
+    super(id, sale, 0);
     this.operation = operation;
   }
 
@@ -84,7 +84,9 @@ public class AdjustSaleMessage extends SaleMessage {
     private static SaleMessage apply(SaleMessage saleMessage, AdjustSaleMessage adjustSaleMessage, BinaryOperator<Integer> op) {
       Sale sale = saleMessage.getSale();
       int adjustedValue = op.apply(sale.getValue(), adjustSaleMessage.getSale().getValue());
-      return new SaleMessage(new Sale(sale.getProductType(), adjustedValue), saleMessage.getCount());
+      return new SaleMessage(saleMessage.getId(),
+              new Sale(sale.getProductType(), adjustedValue),
+              saleMessage.getCount());
     }
   }
 }
