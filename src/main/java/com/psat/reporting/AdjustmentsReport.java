@@ -10,15 +10,15 @@ import java.util.stream.Stream;
 public class AdjustmentsReport implements ReportGenerator<AdjustSaleMessage> {
 
   private static final String REPORT_HEADER = "\n--------------\nADJUSTMENTS REPORT\n--------------\n\n";
-  private static final String REPORT_ENTRY_FORMAT = "\t\t%s( %s, %d)\n";
+  private static final String REPORT_ENTRY_FORMAT = "\t%s(%s, %d)";
   private static final String REPORT_FOOTER_FORMAT = "\n\n--------------\n--------------\n" +
-          "Total Adjustments:: %d\n--------------";
+          "Total Adjustments: %d\n--------------";
 
   @Override
   public Optional<String> generate(List<AdjustSaleMessage> sales) {
     String footer = String.format(REPORT_FOOTER_FORMAT, sales.size());
     return sales.isEmpty() ?
-            generateInvalidReport(footer) : generateValidReport(sales, footer);
+            generateNoAdjustmentsReport(footer) : generateValidReport(sales, footer);
   }
 
   private Optional<String> generateValidReport(List<AdjustSaleMessage> sales, String footer) {
@@ -30,10 +30,10 @@ public class AdjustmentsReport implements ReportGenerator<AdjustSaleMessage> {
     );
   }
 
-  private Optional<String> generateInvalidReport(String footer) {
+  private Optional<String> generateNoAdjustmentsReport(String footer) {
     return generate(
             Stream.of(new AdjustSaleMessage(-1, new Sale("", 0), AdjustSaleMessage.Operation.ADD)),
-            saleMessage -> "Invalid Adjusted Records Input!",
+            saleMessage -> "No Adjusted Records!",
             REPORT_HEADER,
             footer
     );

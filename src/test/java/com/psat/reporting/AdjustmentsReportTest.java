@@ -18,11 +18,11 @@ public class AdjustmentsReportTest {
           "ADJUSTMENTS REPORT\n" +
           "--------------\n" +
           "\n" +
-          "Invalid Adjusted Records Input!\n" +
+          "No Adjusted Records!\n" +
           "\n" +
           "--------------\n" +
           "--------------\n" +
-          "Total Adjustments:: 0\n" +
+          "Total Adjustments: 0\n" +
           "--------------";
 
   private AdjustmentsReport testee;
@@ -50,18 +50,13 @@ public class AdjustmentsReportTest {
             "ADJUSTMENTS REPORT\n" +
             "--------------\n" +
             "\n" +
-            "\t\tadd( toblerone, 10)\n" +
-            "\n" +
-            "\t\tsubtract( mars, 20)\n" +
-            "\n" +
-            "\t\tmultiply( snickers, 5)\n" +
-            "\n" +
-            "\t\tmultiply( mars, 5)\n" +
-            "\n" +
-            "\n" +
+            "\tadd(toblerone, 10)\n" +
+            "\tsubtract(mars, 20)\n" +
+            "\tmultiply(snickers, 5)\n" +
+            "\tmultiply(mars, 5)\n" +
+            "\n--------------\n" +
             "--------------\n" +
-            "--------------\n" +
-            "Total Adjustments:: 4\n" +
+            "Total Adjustments: 4\n" +
             "--------------");
   }
 }
