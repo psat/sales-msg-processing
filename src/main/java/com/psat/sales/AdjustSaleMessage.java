@@ -1,5 +1,7 @@
 package com.psat.sales;
 
+import com.psat.visitor.Visitor;
+
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
@@ -14,6 +16,11 @@ public class AdjustSaleMessage extends SaleMessage {
   public AdjustSaleMessage(int id, Sale sale, Operation operation) {
     super(id, sale, 0);
     this.operation = operation;
+  }
+
+  @Override
+  public void accept(Visitor visitor) {
+    visitor.visit(this);
   }
 
   public SaleMessage adjust(SaleMessage saleMessage) {

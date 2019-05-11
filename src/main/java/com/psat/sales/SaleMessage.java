@@ -1,8 +1,11 @@
 package com.psat.sales;
 
+import com.psat.Message;
+import com.psat.visitor.Visitor;
+
 import java.util.Objects;
 
-public class SaleMessage {
+public class SaleMessage implements Message {
 
   private int id;
   private Sale sale;
@@ -32,6 +35,11 @@ public class SaleMessage {
 
   public int getCount() {
     return count;
+  }
+
+  @Override
+  public void accept(Visitor visitor) {
+    visitor.visit(this);
   }
 
   @Override

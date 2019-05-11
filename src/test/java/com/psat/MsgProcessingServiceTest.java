@@ -112,17 +112,9 @@ public class MsgProcessingServiceTest {
     SaleMessage saleMessage = createSaleMessage(10, "twix", 15);
     testee.process(saleMessage);
 
-    assertThat(spyReportGenerator.getReport()).contains("mars:\n" +
-            "\t#Sales: 9\n" +
-            "\t Total: 45");
-
-    assertThat(spyReportGenerator.getReport()).contains("twix:\n" +
-            "\t#Sales: 1\n" +
-            "\t Total: 15");
-
-    assertThat(spyReportGenerator.getReport()).contains("Grand Total\n" +
-            "\t#Sales: 10\n" +
-            "\t Total: 60");
+    assertReportEntry("mars", 9, 45);
+    assertReportEntry("twix", 1, 15);
+    assertReportTotalEntry(10, 60);
   }
 
   @Test
@@ -130,31 +122,20 @@ public class MsgProcessingServiceTest {
     generateSalesAndStore(0, 9, "mars", 5);
     testee.process(createSaleMessage(9, "twix", 15));
 
-    assertThat(spyReportGenerator.getReport()).contains("mars:\n" +
-            "\t#Sales: 9\n" +
-            "\t Total: 45");
-    assertThat(spyReportGenerator.getReport()).contains("twix:\n" +
-            "\t#Sales: 1\n" +
-            "\t Total: 15");
-    assertThat(spyReportGenerator.getReport()).contains("Grand Total\n" +
-            "\t#Sales: 10\n" +
-            "\t Total: 60");
+    assertReportEntry("mars", 9, 45);
+    assertReportEntry("twix", 1, 15);
+    assertReportTotalEntry(10, 60);
 
     generateSalesAndStore(10, 9, "mars", 5);
     testee.process(createSaleMessage(19, "mars", 20));
 
-    assertThat(spyReportGenerator.getReport()).contains("mars:\n" +
-            "\t#Sales: 19\n" +
-            "\t Total: 110");
-    assertThat(spyReportGenerator.getReport()).contains("twix:\n" +
-            "\t#Sales: 1\n" +
-            "\t Total: 15");
-    assertThat(spyReportGenerator.getReport()).contains("Grand Total\n" +
-            "\t#Sales: 20\n" +
-            "\t Total: 125");
+    assertReportEntry("mars", 19, 110);
+    assertReportEntry("twix", 1, 15);
+    assertReportTotalEntry(20, 125);
   }
 
   private void generateSalesAndStore(int startId, int limit, String productType, int saleValue) {
+    testee.addReceived(limit);
     repository.putAll(Stream.iterate(startId, i -> i + 1)
             .map(id -> createSaleMessage(id, productType, saleValue))
             .limit(limit)
@@ -164,7 +145,7 @@ public class MsgProcessingServiceTest {
   @Test
   public void givenAnAdjustSaleMessage_andNoMessagesInSalesRepository_whenAdjust_thenNoAdjustmentsMade() {
     AdjustSaleMessage adjustSaleMessage = createAdjustSaleMessage("", 2, ADD);
-    testee.adjustSales(adjustSaleMessage);
+    testee.process(adjustSaleMessage);
 
     assertThat(adjustedRepository).isEmpty();
   }
@@ -173,7 +154,7 @@ public class MsgProcessingServiceTest {
   public void givenAnAdjustSaleMessage_andNoMessagesOfSameTypeInSalesRepository_whenAdjust_thenNoAdjustmentsMade() {
     generateSalesAndStore(0, 3, "twix", 25);
     AdjustSaleMessage adjustSaleMessage = createAdjustSaleMessage("", 2, ADD);
-    testee.adjustSales(adjustSaleMessage);
+    testee.process(adjustSaleMessage);
 
     assertThat(adjustedRepository).isEmpty();
   }
@@ -193,13 +174,32 @@ public class MsgProcessingServiceTest {
     adjustAndAssert(MULTIPLY, 3, "raiders", 5, 15);
   }
 
+  @Test
+  public void givenAnAdjustSaleMessageForAdd_10thMessageAndMessagesOfSameTypeInSalesRepository_whenAdjust_thenAdjustmentsMadeAndReportGenerated() {
+    generateSalesAndStore(0, 3, "mars", 15);
+    generateSalesAndStore(3, 6, "twix", 10);
+
+    SaleMessage adjustMarsSales = createAdjustSaleMessage("mars", 3, ADD);
+    testee.process(adjustMarsSales);
+
+    assertThat(adjustedRepository).hasSize(1);
+    assertThat(repository.values().stream()
+            .filter(saleMessage -> saleMessage.getSale().getProductType().equals("mars"))
+            .peek(saleMessage -> assertThat(saleMessage.getSale().getValue()).isEqualTo(18))
+            .count()).isEqualTo(3);
+
+    assertReportEntry("mars", 3, 54);
+    assertReportEntry("twix", 6, 60);
+    assertReportTotalEntry(9, 114);
+  }
+
   private void adjustAndAssert(Operation op, int amount, String productType, int value, int expectedAdjustedValue) {
     SaleMessage mars = createSaleMessage(1, "mars", 1, 1);
     repository.put(1, mars);
     generateSalesAndStore(2, 3, productType, value);
 
     AdjustSaleMessage adjustSaleMessage = createAdjustSaleMessage(productType, amount, op);
-    testee.adjustSales(adjustSaleMessage);
+    testee.process(adjustSaleMessage);
 
     assertThat(adjustedRepository).hasSize(1);
 
@@ -209,5 +209,16 @@ public class MsgProcessingServiceTest {
             .forEach(saleMessage -> assertThat(saleMessage.getSale().getValue()).isEqualTo(expectedAdjustedValue));
 
     assertThat(repository.get(mars.getId())).isEqualTo(mars);
+  }
+
+  private void assertReportEntry(String productType, int countSales, int total) {
+    String expectedEntry = String.format("%s:\n" +
+            "\t#Sales: %d\n" +
+            "\t Total: %d", productType, countSales, total);
+    assertThat(spyReportGenerator.getReport()).contains(expectedEntry);
+  }
+
+  private void assertReportTotalEntry(int countSales, int total) {
+    assertReportEntry("Grand Total", countSales, total);
   }
 }

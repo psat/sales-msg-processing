@@ -5,6 +5,7 @@ import com.psat.calculators.TotalSalesCalculator;
 import com.psat.reporting.ReportGenerator;
 import com.psat.sales.AdjustSaleMessage;
 import com.psat.sales.SaleMessage;
+import com.psat.visitor.Visitor;
 
 import java.util.List;
 import java.util.Map;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 
 import static com.psat.util.Preconditions.checkNotNull;
 
-public class MsgProcessingService {
+public class MsgProcessingService implements Visitor {
 
   private static final Logger LOGGER = Logger.getLogger(MsgProcessingService.class.getSimpleName());
 
@@ -23,6 +24,8 @@ public class MsgProcessingService {
   private ReportGenerator reportGenerator;
   private SalesCalculator salesCalculator;
   private TotalSalesCalculator totalSalesCalculator;
+
+  private int receivedMessages = 0;
 
   public MsgProcessingService(Map<Integer, SaleMessage> repository,
                               List<AdjustSaleMessage> adjustmentsRepository,
@@ -42,10 +45,29 @@ public class MsgProcessingService {
     this.reportGenerator = reportGenerator;
   }
 
-  public void process(SaleMessage saleMessage) {
-    repository.put(saleMessage.getId(), saleMessage);
+  @Override
+  public void visit(SaleMessage saleMessage) {
+    storeSale(saleMessage);
+  }
 
-    if (repository.size() % 10 == 0) {
+  @Override
+  public void visit(AdjustSaleMessage saleMessage) {
+    adjustSales(saleMessage);
+  }
+
+  // VisibleForTesting
+  void addReceived(int receivedMessages) {
+    this.receivedMessages += receivedMessages;
+  }
+
+  public void process(SaleMessage saleMessage) {
+    receivedMessages++;
+    saleMessage.accept(this);
+    calculateAndReport();
+  }
+
+  private void calculateAndReport(){
+    if (receivedMessages % 10 == 0) {
       List<SaleMessage> aggregated = salesCalculator.calculate(repository.values());
       Optional<SaleMessage> totals = totalSalesCalculator.calculate(repository.values());
       Optional<String> optionalReport = reportGenerator.generate(aggregated, totals);
@@ -53,7 +75,11 @@ public class MsgProcessingService {
     }
   }
 
-  public void adjustSales(AdjustSaleMessage adjustSaleMessage) {
+  private void storeSale(SaleMessage saleMessage) {
+    repository.put(saleMessage.getId(), saleMessage);
+  }
+
+  private void adjustSales(AdjustSaleMessage adjustSaleMessage) {
     repository.values().stream()
             .filter(saleMessage -> saleMessage.getSale().getProductType().equals(adjustSaleMessage.getSale().getProductType()))
             .map(adjustSaleMessage::adjust)
