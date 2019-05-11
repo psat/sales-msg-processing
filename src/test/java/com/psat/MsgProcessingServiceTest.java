@@ -2,6 +2,7 @@ package com.psat;
 
 import com.psat.calculators.SalesCalculator;
 import com.psat.calculators.TotalSalesCalculator;
+import com.psat.reporting.AdjustmentsReport;
 import com.psat.reporting.SalesReport;
 import com.psat.reporting.SpyReportGenerator;
 import com.psat.sales.AdjustSaleMessage;
@@ -12,7 +13,11 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.util.*;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import static com.psat.sales.AdjustSaleMessage.Operation.*;
@@ -30,7 +35,8 @@ public class MsgProcessingServiceTest {
   private List<AdjustSaleMessage> adjustedRepository;
   private SalesCalculator salesCalculator;
   private TotalSalesCalculator totalSalesCalculator;
-  private SpyReportGenerator spyReportGenerator;
+  private SpyReportGenerator<SaleMessage> spyReportGenerator;
+  private SpyReportGenerator<AdjustSaleMessage> spyAdjustmentsReportGenerator;
 
   private MsgProcessingService testee;
 
@@ -40,9 +46,12 @@ public class MsgProcessingServiceTest {
     adjustedRepository = new ArrayList<>();
     salesCalculator = new SalesCalculator();
     totalSalesCalculator = new TotalSalesCalculator();
-    spyReportGenerator = new SpyReportGenerator(new SalesReport());
+    spyReportGenerator = new SpyReportGenerator<>(new SalesReport());
+    spyAdjustmentsReportGenerator = new SpyReportGenerator<>(new AdjustmentsReport());
     testee = new MsgProcessingService(
-            repository, adjustedRepository, salesCalculator, totalSalesCalculator, spyReportGenerator
+            repository, adjustedRepository,
+            salesCalculator, totalSalesCalculator,
+            spyReportGenerator, spyAdjustmentsReportGenerator
     );
   }
 
@@ -52,7 +61,7 @@ public class MsgProcessingServiceTest {
     testee = new MsgProcessingService(
             null, adjustedRepository,
             salesCalculator, totalSalesCalculator,
-            spyReportGenerator);
+            spyReportGenerator, spyAdjustmentsReportGenerator);
   }
 
   @Test
@@ -61,7 +70,7 @@ public class MsgProcessingServiceTest {
     testee = new MsgProcessingService(
             repository, null,
             salesCalculator, totalSalesCalculator,
-            spyReportGenerator);
+            spyReportGenerator, spyAdjustmentsReportGenerator);
   }
 
   @Test
@@ -70,7 +79,7 @@ public class MsgProcessingServiceTest {
     testee = new MsgProcessingService(
             repository, adjustedRepository,
             null, totalSalesCalculator,
-            spyReportGenerator);
+            spyReportGenerator, spyAdjustmentsReportGenerator);
   }
 
   @Test
@@ -78,7 +87,7 @@ public class MsgProcessingServiceTest {
     thrown.expect(NullPointerException.class);
     testee = new MsgProcessingService(
             repository, adjustedRepository, null, totalSalesCalculator,
-            spyReportGenerator);
+            spyReportGenerator, spyAdjustmentsReportGenerator);
   }
 
   @Test
@@ -87,7 +96,16 @@ public class MsgProcessingServiceTest {
     testee = new MsgProcessingService(
             repository, adjustedRepository,
             salesCalculator, totalSalesCalculator,
-            null);
+            null, spyAdjustmentsReportGenerator);
+  }
+
+  @Test
+  public void givenANullAdjustmentsReportGenerator_thenNullPointerExceptionIsThrown() {
+    thrown.expect(NullPointerException.class);
+    testee = new MsgProcessingService(
+            repository, adjustedRepository,
+            salesCalculator, totalSalesCalculator,
+            spyReportGenerator, null);
   }
 
   @Test
@@ -193,6 +211,29 @@ public class MsgProcessingServiceTest {
     assertReportTotalEntry(9, 114);
   }
 
+  @Test
+  public void given49MessagesReceived_on50thMessage_whenToBeProcessed_thenAdjustmentsReportGeneratedAndProcessPaused() {
+    generateSalesAndStore(0, 25, "mars", 15);
+    generateSalesAndStore(25, 22, "twix", 10);
+    testee.process(createAdjustSaleMessage("mars", 3, ADD));
+    testee.process(createAdjustSaleMessage("twix", 4, SUBTRACT));
+    testee.process(createSaleMessage(49, "twix", 15));
+
+    SaleMessage sale51th = createSaleMessage(50, "toblerone", 13);
+    testee.process(sale51th);
+    AdjustSaleMessage sale52th = createAdjustSaleMessage("twix", 50, MULTIPLY);
+    testee.process(sale52th);
+
+    assertThat(repository).doesNotContain(new SimpleEntry<>(50, sale51th));
+    assertThat(adjustedRepository).doesNotContain(sale52th);
+
+    assertAdjustmentReportEntry(ADD, "mars", 3);
+    assertAdjustmentReportEntry(SUBTRACT, "twix", 4);
+    assertThat(spyAdjustmentsReportGenerator.getReport()).contains(String.format("Total Adjustments: %d", 2));
+
+    assertThat(testee.getPaused()).isTrue();
+  }
+
   private void adjustAndAssert(Operation op, int amount, String productType, int value, int expectedAdjustedValue) {
     SaleMessage mars = createSaleMessage(1, "mars", 1, 1);
     repository.put(1, mars);
@@ -211,14 +252,19 @@ public class MsgProcessingServiceTest {
     assertThat(repository.get(mars.getId())).isEqualTo(mars);
   }
 
-  private void assertReportEntry(String productType, int countSales, int total) {
+  private void assertReportEntry(String expectedProductType, int expectedCountSales, int expectedTotal) {
     String expectedEntry = String.format("%s:\n" +
             "\t#Sales: %d\n" +
-            "\t Total: %d", productType, countSales, total);
+            "\t Total: %d", expectedProductType, expectedCountSales, expectedTotal);
     assertThat(spyReportGenerator.getReport()).contains(expectedEntry);
   }
 
-  private void assertReportTotalEntry(int countSales, int total) {
-    assertReportEntry("Grand Total", countSales, total);
+  private void assertReportTotalEntry(int expectedCountSales, int expectedTotal) {
+    assertReportEntry("Grand Total", expectedCountSales, expectedTotal);
+  }
+
+  private void assertAdjustmentReportEntry(Operation expectedOperation, String expectedProductType, int expectedValue) {
+    String expectedEntry = String.format("%s(%s, %d)", expectedOperation, expectedProductType, expectedValue);
+    assertThat(spyAdjustmentsReportGenerator.getReport()).contains(expectedEntry);
   }
 }

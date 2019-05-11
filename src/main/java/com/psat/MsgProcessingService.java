@@ -22,27 +22,33 @@ public class MsgProcessingService implements Visitor {
   private Map<Integer, SaleMessage> repository;
   private List<AdjustSaleMessage> adjustmentsRepository;
   private ReportGenerator<SaleMessage> reportGenerator;
+  private ReportGenerator<AdjustSaleMessage> adjustmentsReportGenerator;
   private SalesCalculator salesCalculator;
   private TotalSalesCalculator totalSalesCalculator;
 
   private int receivedMessages = 0;
+  private boolean paused;
 
   public MsgProcessingService(Map<Integer, SaleMessage> repository,
                               List<AdjustSaleMessage> adjustmentsRepository,
                               SalesCalculator salesCalculator,
                               TotalSalesCalculator totalSalesCalculator,
-                              ReportGenerator<SaleMessage> reportGenerator) {
+                              ReportGenerator<SaleMessage> reportGenerator,
+                              ReportGenerator<AdjustSaleMessage> adjustmentsReportGenerator) {
     checkNotNull(repository);
     checkNotNull(adjustmentsRepository);
     checkNotNull(salesCalculator);
     checkNotNull(totalSalesCalculator);
     checkNotNull(reportGenerator);
+    checkNotNull(adjustmentsReportGenerator);
 
     this.repository = repository;
     this.adjustmentsRepository = adjustmentsRepository;
     this.salesCalculator = salesCalculator;
     this.totalSalesCalculator = totalSalesCalculator;
     this.reportGenerator = reportGenerator;
+    this.adjustmentsReportGenerator = adjustmentsReportGenerator;
+    this.paused = false;
   }
 
   @Override
@@ -64,10 +70,25 @@ public class MsgProcessingService implements Visitor {
     this.receivedMessages += receivedMessages;
   }
 
+  // VisibleForTesting
+  boolean getPaused() {
+    return paused;
+  }
+
   public void process(SaleMessage saleMessage) {
     receivedMessages++;
-    saleMessage.accept(this);
-    calculateAndReport();
+
+    if (receivedMessages > 50 && !paused) {
+      paused = true;
+      LOGGER.warning("Processing paused.");
+      adjustmentsReportGenerator
+              .generate(adjustmentsRepository)
+              .ifPresent(LOGGER::info);
+
+    } else if (!paused) {
+      saleMessage.accept(this);
+      calculateAndReport();
+    }
   }
 
   private void calculateAndReport() {
