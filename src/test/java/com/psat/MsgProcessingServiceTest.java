@@ -52,7 +52,7 @@ public class MsgProcessingServiceTest {
     testee = new MsgProcessingService(
             null, adjustedRepository,
             salesCalculator, totalSalesCalculator,
-            (saleMessages, totalSales) -> Optional.of(""));
+            spyReportGenerator);
   }
 
   @Test
@@ -61,7 +61,7 @@ public class MsgProcessingServiceTest {
     testee = new MsgProcessingService(
             repository, null,
             salesCalculator, totalSalesCalculator,
-            (saleMessages, totalSales) -> Optional.of(""));
+            spyReportGenerator);
   }
 
   @Test
@@ -70,7 +70,7 @@ public class MsgProcessingServiceTest {
     testee = new MsgProcessingService(
             repository, adjustedRepository,
             null, totalSalesCalculator,
-            (saleMessages, totalSales) -> Optional.of(""));
+            spyReportGenerator);
   }
 
   @Test
@@ -78,7 +78,7 @@ public class MsgProcessingServiceTest {
     thrown.expect(NullPointerException.class);
     testee = new MsgProcessingService(
             repository, adjustedRepository, null, totalSalesCalculator,
-            (saleMessages, totalSales) -> Optional.of(""));
+            spyReportGenerator);
   }
 
   @Test

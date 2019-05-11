@@ -6,7 +6,6 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 import static com.psat.util.SalesTestHelper.createSaleMessage;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -33,14 +32,14 @@ public class SalesReportTest {
 
   @Test
   public void givenEmptyListOfMessages_thenNoSalesReportIsGenerated() {
-    assertThat(testee.generate(new ArrayList<>(), Optional.empty())).get().isEqualTo(EXPECTED_INVALID_REPORT);
+    assertThat(testee.generate(new ArrayList<>(), null)).get().isEqualTo(EXPECTED_INVALID_REPORT);
   }
 
   @Test
   public void givenTotalSalesIsEmpty_thenNoSalesReportIsGenerated() {
     List<SaleMessage> aggregatedSales = new ArrayList<>();
     aggregatedSales.add(createSaleMessage("toblerone", 10, 1));
-    assertThat(testee.generate(aggregatedSales, Optional.empty())).get().isEqualTo(EXPECTED_INVALID_REPORT);
+    assertThat(testee.generate(aggregatedSales, null)).get().isEqualTo(EXPECTED_INVALID_REPORT);
   }
 
   @Test
@@ -48,7 +47,7 @@ public class SalesReportTest {
     List<SaleMessage> aggregatedSales = new ArrayList<>();
     aggregatedSales.add(createSaleMessage("toblerone", 10, 2));
 
-    Optional<SaleMessage> totalSaleMessage = Optional.of(createSaleMessage("0", 10, 2));
+    SaleMessage totalSaleMessage = createSaleMessage("0", 10, 2);
 
     assertThat(testee.generate(aggregatedSales, totalSaleMessage)).get().isEqualTo("\n--------------\n" +
             "SALES REPORT\n" +
@@ -73,7 +72,7 @@ public class SalesReportTest {
     aggregatedSales.add(createSaleMessage("mars", 20, 3));
     aggregatedSales.add(createSaleMessage("snickers", 20, 1));
 
-    Optional<SaleMessage> totalSaleMessage = Optional.of(createSaleMessage("0", 40, 5));
+    SaleMessage totalSaleMessage = createSaleMessage("0", 40, 5);
 
     assertThat(testee.generate(aggregatedSales, totalSaleMessage)).get().isEqualTo("\n--------------\n" +
             "SALES REPORT\n" +

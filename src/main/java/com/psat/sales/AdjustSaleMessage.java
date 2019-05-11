@@ -18,6 +18,10 @@ public class AdjustSaleMessage extends SaleMessage {
     this.operation = operation;
   }
 
+  public Operation getOperation() {
+    return operation;
+  }
+
   @Override
   public void accept(Visitor visitor) {
     visitor.visit(this);

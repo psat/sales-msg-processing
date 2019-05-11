@@ -21,7 +21,7 @@ public class MsgProcessingService implements Visitor {
 
   private Map<Integer, SaleMessage> repository;
   private List<AdjustSaleMessage> adjustmentsRepository;
-  private ReportGenerator reportGenerator;
+  private ReportGenerator<SaleMessage> reportGenerator;
   private SalesCalculator salesCalculator;
   private TotalSalesCalculator totalSalesCalculator;
 
@@ -31,7 +31,7 @@ public class MsgProcessingService implements Visitor {
                               List<AdjustSaleMessage> adjustmentsRepository,
                               SalesCalculator salesCalculator,
                               TotalSalesCalculator totalSalesCalculator,
-                              ReportGenerator reportGenerator) {
+                              ReportGenerator<SaleMessage> reportGenerator) {
     checkNotNull(repository);
     checkNotNull(adjustmentsRepository);
     checkNotNull(salesCalculator);
@@ -47,11 +47,15 @@ public class MsgProcessingService implements Visitor {
 
   @Override
   public void visit(SaleMessage saleMessage) {
+    LOGGER.info(() -> String.format("Processing SaleMessage - product: %s - id: %d",
+            saleMessage.getSale().getProductType(), saleMessage.getId()));
     storeSale(saleMessage);
   }
 
   @Override
   public void visit(AdjustSaleMessage saleMessage) {
+    LOGGER.info(() -> String.format("Processing AdjustSaleMessage - product: %s - op: %s",
+            saleMessage.getSale().getProductType(), saleMessage.getOperation()));
     adjustSales(saleMessage);
   }
 
@@ -66,12 +70,12 @@ public class MsgProcessingService implements Visitor {
     calculateAndReport();
   }
 
-  private void calculateAndReport(){
+  private void calculateAndReport() {
     if (receivedMessages % 10 == 0) {
       List<SaleMessage> aggregated = salesCalculator.calculate(repository.values());
       Optional<SaleMessage> totals = totalSalesCalculator.calculate(repository.values());
-      Optional<String> optionalReport = reportGenerator.generate(aggregated, totals);
-      optionalReport.ifPresent(LOGGER::info);
+      totals.flatMap(totalSales -> reportGenerator.generate(aggregated, totalSales))
+              .ifPresent(LOGGER::info);
     }
   }
 
