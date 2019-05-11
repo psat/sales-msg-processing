@@ -1,7 +1,6 @@
 package com.psat;
 
-import com.psat.calculators.SalesCalculator;
-import com.psat.calculators.TotalSalesCalculator;
+import com.psat.calculators.Calculator;
 import com.psat.reporting.ReportGenerator;
 import com.psat.sales.AdjustSaleMessage;
 import com.psat.sales.SaleMessage;
@@ -23,16 +22,16 @@ public class MsgProcessingService implements Visitor {
   private List<AdjustSaleMessage> adjustmentsRepository;
   private ReportGenerator<SaleMessage> reportGenerator;
   private ReportGenerator<AdjustSaleMessage> adjustmentsReportGenerator;
-  private SalesCalculator salesCalculator;
-  private TotalSalesCalculator totalSalesCalculator;
+  private Calculator<List<SaleMessage>> salesCalculator;
+  private Calculator<Optional<SaleMessage>> totalSalesCalculator;
 
   private int receivedMessages = 0;
   private boolean paused;
 
   public MsgProcessingService(Map<Integer, SaleMessage> repository,
                               List<AdjustSaleMessage> adjustmentsRepository,
-                              SalesCalculator salesCalculator,
-                              TotalSalesCalculator totalSalesCalculator,
+                              Calculator<List<SaleMessage>> salesCalculator,
+                              Calculator<Optional<SaleMessage>> totalSalesCalculator,
                               ReportGenerator<SaleMessage> reportGenerator,
                               ReportGenerator<AdjustSaleMessage> adjustmentsReportGenerator) {
     checkNotNull(repository);

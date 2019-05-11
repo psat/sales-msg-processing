@@ -1,5 +1,6 @@
 package com.psat;
 
+import com.psat.calculators.Calculator;
 import com.psat.calculators.SalesCalculator;
 import com.psat.calculators.TotalSalesCalculator;
 import com.psat.reporting.AdjustmentsReport;
@@ -14,10 +15,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static com.psat.sales.AdjustSaleMessage.Operation.*;
@@ -33,8 +31,8 @@ public class MsgProcessingServiceTest {
 
   private Map<Integer, SaleMessage> repository;
   private List<AdjustSaleMessage> adjustedRepository;
-  private SalesCalculator salesCalculator;
-  private TotalSalesCalculator totalSalesCalculator;
+  private Calculator<List<SaleMessage>> salesCalculator;
+  private Calculator<Optional<SaleMessage>> totalSalesCalculator;
   private SpyReportGenerator<SaleMessage> spyReportGenerator;
   private SpyReportGenerator<AdjustSaleMessage> spyAdjustmentsReportGenerator;
 
