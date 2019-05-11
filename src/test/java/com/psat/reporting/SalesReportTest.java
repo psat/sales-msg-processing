@@ -19,7 +19,7 @@ public class SalesReportTest {
           "Invalid input!\n" +
           "\n--------------\n" +
           "--------------\n" +
-          "Grand Total\n" +
+          "Grand Total:\n" +
           "\t#Sales: 0\n" +
           "\t Total: 0\n" +
           "--------------";
@@ -60,7 +60,7 @@ public class SalesReportTest {
             "\n" +
             "--------------\n" +
             "--------------\n" +
-            "Grand Total\n" +
+            "Grand Total:\n" +
             "\t#Sales: 2\n" +
             "\t Total: 10\n" +
             "--------------");
@@ -91,7 +91,7 @@ public class SalesReportTest {
             "\n" +
             "--------------\n" +
             "--------------\n" +
-            "Grand Total\n" +
+            "Grand Total:\n" +
             "\t#Sales: 5\n" +
             "\t Total: 40\n" +
             "--------------");

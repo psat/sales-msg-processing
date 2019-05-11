@@ -13,7 +13,7 @@ public class SalesReport implements ReportGenerator {
   private static final String SALE_REPORT_ENTRY_FORMAT = "%s:\n\t#Sales: %d\n\t Total: %d";
   private static final String SALES_REPORT_HEADER = "\n--------------\nSALES REPORT\n--------------\n\n";
   private static final String SALES_REPORT_FOOTER_FORMAT = "\n\n--------------\n--------------\n" +
-          "Grand Total\n\t#Sales: %d\n\t Total: %d\n--------------";
+          "Grand Total:\n\t#Sales: %d\n\t Total: %d\n--------------";
 
   @Override
   public Optional<String> generate(List<SaleMessage> aggregatedSales, Optional<SaleMessage> totalSales) {
